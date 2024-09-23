@@ -6,46 +6,22 @@
 /*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/02 17:10:00 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/03 22:51:12 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/17 15:23:53 by aduvilla         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "builtin.h"
 
-int	str_isdigit(char *str)
+int	no_loop(char *str, int i)
 {
-	int	i;
+	int	j;
 
-	i = 0;
-	if (!str)
-		return (1);
-	if (str[i] == '-' || str[i] == '+')
-		i++;
+	j = i;
 	while (str[i])
 	{
-		if (!ft_isdigit(str[i]))
-			return (0);
-		i++;
-	}
-	return (1);
-}
-
-static int	is_inenv(char *str, char **env)
-{
-	int		i;
-	int		j;
-	char	*ptr;
-
-	i = 0;
-	if (!env | !str)
-		return (0);
-	while (env[i])
-	{
-		ptr = ft_strchr(env[i], '=');
-		if (ptr)
+		if (str[i] == '$')
 		{
-			j = ft_strlen(env[i]) - ft_strlen(ptr);
-			if (!ft_strncmp(env[i], str, j + 1))
+			if (!ft_strncmp(str, &str[i + 1], j - 1))
 				return (1);
 		}
 		i++;
@@ -53,26 +29,25 @@ static int	is_inenv(char *str, char **env)
 	return (0);
 }
 
-static int	dup_arr(char ***new, char **env, char **argv)
+int	arg_isok(char *str)
 {
 	int	i;
-	int	count;
 
 	i = 0;
-	count = 0;
-	while (env && env[i + count])
+	if (str && str[i] != '_' && !ft_isalpha(str[i]))
+		return (1);
+	while (str && str[i] != '\0' && str[i] != '=')
 	{
-		if (is_inenv(env[i + count], argv))
-			count++;
-		else
-		{
-			new[0][i] = ft_strdup(env[i + count]);
-			if (!new[0][i])
-				return (ft_freetab(*new), -1);
-			i++;
-		}
+		if (!ft_isalnum(str[i]) && str[i] != '_')
+			return (1);
+		i++;
 	}
-	return (i);
+	if (str && str[i] == '=')
+	{
+		if (no_loop(str, i))
+			return (1);
+	}
+	return (0);
 }
 
 int	ft_lenarr(char **argv, char **env)
@@ -91,7 +66,7 @@ int	ft_lenarr(char **argv, char **env)
 	{
 		while (argv[i])
 		{
-			if (argv[i] && ft_strchr(argv[i], '=') && !is_inenv(argv[i], env))
+			if (argv[i] && ft_strchr(argv[i], '=') && !arg_isok(argv[i]))
 				res++;
 			i++;
 		}
@@ -99,29 +74,20 @@ int	ft_lenarr(char **argv, char **env)
 	return (res);
 }
 
-char	**ft_joinarr(char **argv, char **env)
+int	str_isdigit(char *str)
 {
-	int		i;
-	int		j;
-	char	**new;
+	int	i;
 
-	new = malloc(sizeof(char *) * (ft_lenarr(argv, env) + 1));
-	if (!new)
-		return (NULL);
-	i = dup_arr(&new, env, argv);
-	if (i < 0)
-		return (ft_freetab(new), NULL);
-	j = 0;
-	while (argv && argv[j])
+	i = 0;
+	if (!str)
+		return (1);
+	if (str[i] == '-' || str[i] == '+')
+		i++;
+	while (str[i])
 	{
-		if (ft_strchr(argv[j], '=') != NULL)
-		{
-			new[i++] = ft_strdup(argv[j]);
-			if (!new[i - 1])
-				return (ft_freetab(new), NULL);
-		}
-		j++;
+		if (!ft_isdigit(str[i]))
+			return (0);
+		i++;
 	}
-	new[i] = NULL;
-	return (new);
+	return (1);
 }

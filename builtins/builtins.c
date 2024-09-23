@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 15:48:49 by ctruchot          #+#    #+#             */
-/*   Updated: 2024/04/04 15:08:33 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/18 17:19:32 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,11 @@
 int	is_a_builtin(t_cmd *cmd)
 {
 	char	*builtstr;
+	char	*str;
 	char	**builtarr;
 	int		i;
 
+	str = cmd->argv[0];
 	i = 0;
 	builtstr = "echo;cd;pwd;export;unset;env;exit";
 	builtarr = ft_split(builtstr, ';');
@@ -25,7 +27,7 @@ int	is_a_builtin(t_cmd *cmd)
 		return (-2);
 	while (builtarr[i])
 	{
-		if (!strncmp(builtarr[i], cmd->argv[0], ft_strlen(builtarr[i]) + 1))
+		if (!ft_strncmp(builtarr[i], str, ft_strlen(builtarr[i]) + 1))
 			return (ft_freetab(builtarr), i);
 		i++;
 	}
@@ -43,6 +45,8 @@ int	exec_builtin(t_exec *exec, t_child *child)
 		clear_built(exec, child, 0);
 	else if (i == 2)
 		exec_pwd_c(exec, child);
+	else if (i == 3 && !child->current_cmd->argv[1])
+		print_export(exec, 2);
 	else if (i == 3)
 		clear_built(exec, child, 0);
 	else if (i == 4)
@@ -67,24 +71,24 @@ int	redirect_out(t_exec *exec)
 	return (fd);
 }
 
-int	exec_builtin_parent(t_exec *exec, t_persistent *pers)
+int	exec_builtin_parent(t_exec *exec, t_pers *pers)
 {
 	int			i;
 
 	i = is_a_builtin(exec->cmd);
 	if (i == 0)
-		g_status = exec_echo(exec);
+		pers->status_code = exec_echo(exec);
 	else if (i == 1)
-		g_status = exec_cd(exec, pers);
+		pers->status_code = exec_cd(exec, pers);
 	else if (i == 2)
-		g_status = exec_pwd(exec);
+		pers->status_code = exec_pwd(exec);
 	else if (i == 3)
-		g_status = exec_export(exec, pers);
+		pers->status_code = exec_export(exec, pers);
 	else if (i == 4)
-		g_status = exec_unset(exec, pers);
+		pers->status_code = exec_unset(exec, pers);
 	else if (i == 5)
-		g_status = exec_env(exec);
+		pers->status_code = exec_env(exec);
 	else if (i == 6)
 		exec_exit_parent(exec, pers);
-	return (g_status);
+	return (pers->status_code);
 }

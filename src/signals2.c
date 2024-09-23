@@ -1,30 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_freetab.c                                       :+:      :+:    :+:   */
+/*   signals2.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/12 21:37:58 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/15 14:20:46 by ctruchot         ###   ########.fr       */
+/*   Created: 2024/04/17 15:34:40 by ctruchot          #+#    #+#             */
+/*   Updated: 2024/04/17 15:37:35 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#include <minishell.h>
 
-void	ft_freetab(char **tab)
+void	handle_sigquit_several(int sig)
 {
-	int	i;
+	g_status = 0;
+	rl_replace_line("", 0);
+	rl_on_new_line();
+	(void)sig;
+}
 
-	i = 0;
-	if (tab)
-	{
-		while (tab[i])
-		{
-			free(tab[i]);
-			i++;
-		}
-		free(tab);
-		tab = NULL;
-	}
+void	handle_sigquit(int sig)
+{
+	g_status = 131;
+	ft_printf("Quit (core dumped)\n");
+	(void)sig;
 }

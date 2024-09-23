@@ -6,41 +6,20 @@
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 10:52:09 by ctruchot          #+#    #+#             */
-/*   Updated: 2024/04/04 18:58:20 by ctruchot         ###   ########.fr       */
+/*   Updated: 2024/04/18 17:23:11 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "exec.h"
 #include "builtin.h"
+#include "exec.h"
 #include "file_checks.h"
 #include "minishell.h"
 
-int	initialize_child(t_child *child, t_exec *exec)
-{
-	int	i;
-
-	i = 0;
-	ft_bzero(child, sizeof(t_child));
-	child->cmdno = exec->cmdno;
-	child->current_cmd = exec->cmd;
-	if (child->cmdno > 0 && child->cmdno < exec->total_cmd)
-	{
-		while (i < child->cmdno)
-		{
-			child->current_cmd = child->current_cmd->next;
-			i++;
-		}
-	}
-	return (0);
-}
-
-int	manage_fds(t_cmd *cmd)
+static int	manage_fds_in(t_cmd *cmd)
 {
 	int	fdin;
-	int	fdout;
 
 	fdin = 0;
-	fdout = 0;
 	if (cmd->in != NULL)
 	{
 		fdin = open(cmd->in->path, O_RDONLY);
@@ -50,9 +29,20 @@ int	manage_fds(t_cmd *cmd)
 			return (ft_putstr_fd(strerror(errno), 2), 1);
 		close(fdin);
 	}
+	return (0);
+}
+
+static int	manage_fds_out(t_cmd *cmd)
+{
+	int	fdout;
+
+	fdout = 0;
 	if (cmd->out != NULL)
 	{
-		fdout = open(cmd->out->path, O_WRONLY);
+		if (cmd->out->mode == SIMPLE)
+			fdout = open(cmd->out->path, O_WRONLY | O_TRUNC);
+		else if (cmd->out->mode == DOUBLE)
+			fdout = open(cmd->out->path, O_WRONLY | O_APPEND);
 		if (fdout < 0)
 			return (ft_putstr_fd(strerror(errno), 2), 1);
 		if (dup2(fdout, STDOUT_FILENO) == -1)
@@ -62,7 +52,7 @@ int	manage_fds(t_cmd *cmd)
 	return (0);
 }
 
-int	exec_uno(t_exec *exec)
+static int	exec_uno(t_exec *exec, t_pers *pers)
 {
 	int		status;
 	char	*path_cmd;
@@ -76,31 +66,18 @@ int	exec_uno(t_exec *exec)
 		return (ft_putstr_fd(strerror(errno), 2), 1);
 	if (exec->pid[0] == 0)
 	{
-		if (manage_fds(exec->cmd) != 0)
+		if (manage_fds_in(exec->cmd) != 0 || manage_fds_out(exec->cmd) != 0)
 			return (1);
 		if (execve(path_cmd, exec->cmd->argv, exec->mini_env) == -1)
 			return (1);
 	}
 	waitpid(exec->pid[0], &status, 0);
-	if (WIFEXITED(status))
-		g_status = WEXITSTATUS(status);
-	else if (WIFSIGNALED(status))
-	{
-		if (status == 139)
-		{
-			ft_putstr_fd("Segmentation fault (core dumped)\n", 2);
-			g_status = status;
-		}
-		else if (status == 131)
-			g_status = status;
-		else
-			g_status = status + 128;
-	}
+	get_status(status, pers);
 	clean_exit_parent(exec, 0);
-	return (g_status);
+	return (pers->status_code);
 }
 
-static int	initialize_exec(t_exec *exec, t_cmd *cmd, t_persistent *pers)
+static int	initialize_exec(t_exec *exec, t_cmd *cmd, t_pers *pers)
 {
 	int	k;
 
@@ -128,7 +105,7 @@ static int	initialize_exec(t_exec *exec, t_cmd *cmd, t_persistent *pers)
 	return (0);
 }
 
-int	exec(t_cmd *cmd, t_persistent *pers)
+int	exec(t_cmd *cmd, t_pers *pers)
 {
 	t_exec	exec;
 
@@ -137,11 +114,14 @@ int	exec(t_cmd *cmd, t_persistent *pers)
 	if (exec.total_cmd == 1)
 	{
 		if (exec.cmd->type == KILLED)
-			return (clean_exit_parent(&exec, 0), g_status);
+			return (clean_exit_parent(&exec, 0), pers->status_code);
 		else if (exec.cmd->type == BUILTPAR)
 			return (exec_builtin_parent(&exec, pers));
 		else
-			return (exec_uno(&exec));
+		{
+			exec_builtin_parent(&exec, pers);
+			return (exec_uno(&exec, pers));
+		}
 	}
 	else if (exec.total_cmd > 1)
 	{
@@ -149,7 +129,7 @@ int	exec(t_cmd *cmd, t_persistent *pers)
 			return (1);
 		if (ft_fork(&exec) != 0)
 			return (1);
-		g_status = clean_end(&exec);
+		pers->status_code = clean_end(&exec, pers);
 	}
-	return (g_status);
+	return (pers->status_code);
 }

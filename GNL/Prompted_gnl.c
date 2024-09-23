@@ -1,30 +1,33 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_freetab.c                                       :+:      :+:    :+:   */
+/*   Prompted_gnl.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/12 21:37:58 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/15 14:20:46 by ctruchot         ###   ########.fr       */
+/*   Created: 2024/04/09 17:32:43 by aduvilla          #+#    #+#             */
+/*   Updated: 2024/04/11 17:30:06 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#include "get_next_line.h"
+#include "minishell.h" 
 
-void	ft_freetab(char **tab)
+char	*prompted_gnl(char *prompt, int fd, int mode)
 {
-	int	i;
+	char	*gnl;
+	char	*cpy;
 
-	i = 0;
-	if (tab)
+	ft_putstr(prompt);
+	cpy = get_next_line(fd);
+	if (!cpy)
+		return (NULL);
+	if (mode == 1)
+		return (cpy);
+	else
 	{
-		while (tab[i])
-		{
-			free(tab[i]);
-			i++;
-		}
-		free(tab);
-		tab = NULL;
+		gnl = ft_substr(cpy, 0, ft_strlen(cpy) - 1);
+		free(cpy);
+		return (gnl);
 	}
 }

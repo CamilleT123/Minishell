@@ -6,7 +6,7 @@
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 15:09:10 by ctruchot          #+#    #+#             */
-/*   Updated: 2024/04/04 19:46:50 by ctruchot         ###   ########.fr       */
+/*   Updated: 2024/04/17 15:37:44 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ void	handle_sigint(int sig)
 	(void)sig;
 }
 
-void	handle_sigint_inprocess(int sig)
+void	handle_sigint_read(int sig)
 {
 	g_status = 130;
 	ft_printf("\n");
@@ -31,19 +31,28 @@ void	handle_sigint_inprocess(int sig)
 	(void)sig;
 }
 
-void	handle_sigint_inheredoc(int sig)
+void	handle_heredoc(int sig)
 {
-	ft_printf("here\n");
-	exit (130);
+	g_status = 130;
+	ft_printf("\n");
+	rl_replace_line("", 0);
+	rl_on_new_line();
 	(void)sig;
-	return ;
 }
 
-void	handle_sigquit(int sig)
+void	sigac(void)
 {
-	g_status = 131;
-	ft_printf("Quit (core dumped)\n");
-	(void)sig;
+	struct sigaction	hdint;
+	struct sigaction	hdquit;
+
+	sigemptyset(&hdint.sa_mask);
+	hdint.sa_handler = &handle_heredoc;
+	hdint.sa_flags = 0;
+	sigemptyset(&hdquit.sa_mask);
+	hdquit.sa_handler = SIG_IGN;
+	hdquit.sa_flags = 0;
+	sigaction(SIGINT, &hdint, NULL);
+	sigaction(SIGQUIT, &hdquit, NULL);
 }
 
 void	signals(int sig)
@@ -55,12 +64,14 @@ void	signals(int sig)
 	}
 	if (sig == 2)
 	{
-		signal(SIGINT, handle_sigint_inprocess);
+		signal(SIGINT, handle_heredoc);
 		signal(SIGQUIT, handle_sigquit);
 	}
-	if (sig == 3)
+	if (sig == 4)
 	{
-		signal(SIGINT, handle_sigint_inheredoc);
-		signal(SIGQUIT, SIG_IGN);
+		signal(SIGINT, handle_heredoc);
+		signal(SIGQUIT, handle_sigquit_several);
 	}
+	if (sig == 3)
+		sigac();
 }

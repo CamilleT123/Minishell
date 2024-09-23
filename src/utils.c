@@ -6,7 +6,7 @@
 /*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 19:57:43 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/02 16:34:59 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/17 13:08:28 by aduvilla         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ char	*ft_getenv(char **env, char *str)
 	return (value);
 }
 
-void	parse_env_array(t_persistent *pers, char **env)
+void	parse_env_array(t_pers *pers, char **env)
 {
 	char	**tab;
 	int		i;
@@ -47,13 +47,21 @@ void	parse_env_array(t_persistent *pers, char **env)
 	while (env[i])
 		i++;
 	tab = malloc(sizeof(char *) * (i + 1));
-	tab[i] = NULL;
+	if (!tab)
+		return ;
 	i = 0;
 	while (env[i])
 	{
 		tab[i] = ft_strdup(env[i]);
+		if (!tab[i])
+		{
+			ft_freetab(tab);
+			tab = NULL;
+			return ;
+		}
 		i++;
 	}
+	tab[i] = NULL;
 	pers->mini_env = tab;
 }
 

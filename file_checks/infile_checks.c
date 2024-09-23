@@ -6,7 +6,7 @@
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 15:38:44 by ctruchot          #+#    #+#             */
-/*   Updated: 2024/04/04 19:35:27 by ctruchot         ###   ########.fr       */
+/*   Updated: 2024/04/17 14:45:25 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,10 @@ t_redirect	*get_valid_in(t_redirect *in)
 	first_in = in;
 	valid_in = ft_in_lstlast(in);
 	if (valid_in->mode == DOUBLE)
+	{
+		free(valid_in->path);
 		valid_in->path = ft_strdup("/tmp/.tmpheredoc");
+	}
 	if (valid_in->mode == SIMPLE)
 	{
 		while (in)
@@ -40,7 +43,7 @@ t_redirect	*get_valid_in(t_redirect *in)
 
 // checks the existence and permissions in the infile if simple <
 
-int	check_infile_errors(char *path)
+static int	check_infile_errors(char *path)
 {
 	if (!path)
 		return (3);
@@ -61,7 +64,7 @@ int	check_infile_errors(char *path)
 // then prints the error message, even if the infile with error is before
 // here_doc
 
-int	check_in(t_redirect *in, t_cmd *cmd, t_persistent *pers)
+int	check_in(t_redirect *in, t_pers *pers)
 {
 	t_redirect	*buf;
 
@@ -69,7 +72,7 @@ int	check_in(t_redirect *in, t_cmd *cmd, t_persistent *pers)
 	while (buf)
 	{
 		if (buf->mode == DOUBLE)
-			if (get_here_doc(buf->path, cmd, pers) != 0)
+			if (get_here_doc(buf->path, pers) != 0)
 				return (2);
 		buf = buf->next;
 	}

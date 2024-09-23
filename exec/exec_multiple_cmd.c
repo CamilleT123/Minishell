@@ -6,7 +6,7 @@
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 18:22:00 by ctruchot          #+#    #+#             */
-/*   Updated: 2024/04/02 13:34:11 by ctruchot         ###   ########.fr       */
+/*   Updated: 2024/04/18 17:23:41 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,26 @@
 #include "builtin.h"
 #include "file_checks.h"
 
-int	redirect(t_exec *exec, t_child *child)
+int	initialize_child(t_child *child, t_exec *exec)
+{
+	int	i;
+
+	i = 0;
+	ft_bzero(child, sizeof(t_child));
+	child->cmdno = exec->cmdno;
+	child->current_cmd = exec->cmd;
+	if (child->cmdno > 0 && child->cmdno < exec->total_cmd)
+	{
+		while (i < child->cmdno)
+		{
+			child->current_cmd = child->current_cmd->next;
+			i++;
+		}
+	}
+	return (0);
+}
+
+static int	redirect(t_exec *exec, t_child *child)
 {
 	if (exec->cmdno == 0)
 	{
@@ -47,7 +66,7 @@ int	ft_fork(t_exec *exec)
 	while (exec->cmdno < exec->total_cmd)
 	{
 		exec->pid[exec->cmdno] = fork();
-		signals(2);
+		signals(4);
 		if (exec->pid[exec->cmdno] < 0)
 			return (close_all_fds(exec), clean_exit_parent(exec, 1), 2);
 		if (exec->pid[exec->cmdno] == 0)

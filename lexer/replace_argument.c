@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   replace_argument.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/09 19:53:41 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/02 16:36:02 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/17 12:52:42 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ static char	*check_in_env(char *arg, char **env)
 	return (value);
 }
 
-static int	replace_in_list(char **read, char *arg, char *value, int index)
+int	replace_in_list(char **read, char *arg, char *value, int index)
 {
 	char	*cpy;
 	char	*cpy2;
@@ -68,38 +68,44 @@ static int	replace_in_list(char **read, char *arg, char *value, int index)
 	return (0);
 }
 
-static int	find_and_replace(char **read, int index, char **env)
+static int	find_and_replace(char **read, int *index, char **env)
 {
 	int		j;
 	char	*arg;
 	char	*value;
 
-	j = index + 1;
-	if (read[0][j] == '\0')
-		return (0);
+	j = *index + 1;
 	while (ft_isalnum(read[0][j]) || read[0][j] == '_')
 		j++;
-	arg = ft_substr(*read, index + 1, j - index - 1);
+	arg = ft_substr(*read, *index + 1, j - *index - 1);
 	if (!arg)
 		return (msg_lex(MALLOC, 0, ""), 1);
 	if (arg[0] == '\0')
+	{
+		*index = *index + 1;
 		return (free(arg), 0);
+	}
 	value = check_in_env(arg, env);
 	if (!value)
 		return (1);
-	if (replace_in_list(read, arg, value, index))
+	if (replace_in_list(read, arg, value, *index))
 		return (free(arg), 1);
 	free(arg);
 	return (0);
 }
 
-static int	replace_status(char **read, int index)
+static int	replace_status(char **read, int index, t_pers *pers)
 {
 	char		*arg;
 	char		*value;
 
 	arg = "?";
-	value = ft_itoa(g_status);
+	if (g_status != 0)
+	{
+		pers->status_code = g_status;
+		g_status = 0;
+	}
+	value = ft_itoa(pers->status_code);
 	if (!value)
 		return (msg_lex(MALLOC, 0, ""), 1);
 	if (replace_in_list(read, arg, value, index))
@@ -107,78 +113,30 @@ static int	replace_status(char **read, int index)
 	return (0);
 }
 
-int	replace_argument(char **read, t_persistent *pers)
+int	replace_argument(char **read, t_pers *pers)
 {
 	int		i;
+	int		dquote;
+	char	**env;
 
 	i = 0;
+	dquote = 1;
+	env = pers->mini_env;
 	while (*read && read[0][i])
 	{
-		pass_simple_quote(*read, &i);
+		if (read[0][i] == 34)
+			dquote *= -1;
+		if (dquote > 0)
+			pass_simple_quote(*read, &i);
 		if (read[0][i] == '$' && read[0][i + 1] == '?'
-			&& replace_status(read, i))
+			&& replace_status(read, i, pers))
 			return (1);
-		if (read[0][i] == '$' && find_and_replace(read, i, pers->mini_env))
+		else if (read[0][i] == '$' && find_and_replace(read, &i, env))
 			return (1);
-		if (read[0][i] != '\0')
+		else if (read[0][i] == '~' && replace_home(pers, read, i))
+			return (1);
+		if (read[0][i] != '\0' && read[0][i] != '$')
 			i++;
 	}
 	return (0);
 }
-/*
-int	replace_argument(t_lst **lexer, char **env)
-{
-	t_lst	*buf;
-	int		i;
-
-	buf = *lexer;
-	while (buf)
-	{
-		i = 0;
-		if (buf->token == DIN && buf->next)
-			buf = buf->next->next;
-		while (buf && buf->str[i])
-		{
-			pass_simple_quote(buf->str, &i);
-			if (buf->str[i] == '$' && buf->str[i + 1] == '$'
-				&& replace_dollar(buf, i, env))
-				return (1);
-			if (buf->str[i] == '$' && find_and_replace(buf, i, env))
-				return (1);
-			if (buf->str[i] != '\0')
-				i++;
-		}
-		if (buf)
-			buf = buf->next;
-	}
-	return (0);
-}
-
-int	replace_argument(t_lst **lexer, t_persistent *pers)
-{
-	t_lst	*buf;
-	int		i;
-
-	buf = *lexer;
-	while (buf)
-	{
-		i = 0;
-		if (buf->token == DIN && buf->next)
-			buf = buf->next->next;
-		while (buf && buf->str[i])
-		{
-			pass_simple_quote(buf->str, &i);
-			if (buf->str[i] == '$' && buf->str[i + 1] == '?'
-				&& replace_status(buf, i))
-				return (1);
-			if (buf->str[i] == '$' && find_and_replace(buf, i, pers->mini_env))
-				return (1);
-			if (buf->str[i] != '\0')
-				i++;
-		}
-		if (buf)
-			buf = buf->next;
-	}
-	return (0);
-}
-*/

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_exit.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/20 19:40:29 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/03 23:10:20 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/18 17:52:43 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ void	exec_exit_c(t_exec *exec, t_child *child)
 	char	**argv;
 
 	argv = child->current_cmd->argv;
-	ft_printf("exit\n");
 	if (argv[1])
 	{
 		if (argv[2])
@@ -90,16 +89,20 @@ void	exec_exit_c(t_exec *exec, t_child *child)
 		else
 			clear_built(exec, child, msg_built(EXIT, argv[1], 2));
 	}
-	clear_built(exec, child, 0);
+	else
+		clear_built(exec, child, 0);
 }
 
-void	exec_exit_parent(t_exec *exec, t_persistent *pers)
+void	exec_exit_parent(t_exec *exec, t_pers *pers)
 {
 	ft_printf("exit\n");
 	if (exec->cmd->argv[1])
 	{
-		if (exec->cmd->argv[2])
-			final_exit(exec, pers, msg_built(ARGS, "exit", 1));
+		if (exec->cmd->argv[2] && str_isdigit(exec->cmd->argv[1]))
+		{
+			msg_built(ARGS, "exit", 1);
+			return ;
+		}
 		else if (str_isdigit(exec->cmd->argv[1]))
 			final_exit(exec, pers, ft_atoi(exec->cmd->argv[1]));
 		else

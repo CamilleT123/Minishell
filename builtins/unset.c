@@ -6,7 +6,7 @@
 /*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/23 12:44:24 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/03/27 12:22:24 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/16 16:12:38 by aduvilla         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ static int	copy_unset(char ***new, char **env, char **argv)
 	return (0);
 }
 
-int	exec_unset(t_exec *exec, t_persistent *pers)
+int	exec_unset(t_exec *exec, t_pers *pers)
 {
 	char	**cpy;
 	char	**argv;
@@ -125,5 +125,7 @@ int	exec_unset(t_exec *exec, t_persistent *pers)
 	}
 	ft_freetab(cpy);
 	pers->mini_env = new;
+	if (unset_exp(exec, pers))
+		return (1);
 	return (clear_one(exec, 0));
 }

@@ -6,7 +6,7 @@
 /*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/08 15:46:39 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/02 16:23:22 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/15 17:02:37 by aduvilla         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,16 +62,19 @@ char	*ft_trijoin(char *s1, char *s2, char *s3);
 int		pass_quote(char *str, int *i);
 void	pass_simple_quote(char *str, int *i);
 int		is_special(char c);
+int		replace_in_list(char **read, char *arg, char *value, int index);
 
 /*------- ERRORS -------*/
 int		search_errors(char *read);
 void	msg_lex(t_msg msg, char c, char *str);
 
 /*------- LEXER -------*/
+int		append_new_read(char **read, t_pers *pers);
 int		create_token_list(t_lst **lexer, char *read);
-t_cmd	*parse_read(char *read, t_persistent *pers);
-int		replace_argument(char **read, t_persistent *pers);
+t_cmd	*parse_read(char *read, t_pers *pers);
+int		replace_argument(char **read, t_pers *pers);
 int		delete_quotes(t_lst **list);
+int		replace_home(t_pers *pers, char **read, int index);
 
 /*------- PARSER -------*/
 int		create_cmd_list(t_parse *parse);

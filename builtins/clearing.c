@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   clearing.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aduvilla <aduvilla@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 14:43:49 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/04/04 15:46:32 by aduvilla         ###   ########.fr       */
+/*   Updated: 2024/04/18 17:21:49 by ctruchot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,12 @@ static void	msg_built2(t_built msg, char *str)
 	{
 		ft_putstr_fd("cd: ", 2);
 		ft_putstr_fd("HOME not set\n", 2);
+	}
+	if (msg == EXPORT)
+	{
+		ft_putstr_fd("export: '", 2);
+		ft_putstr_fd(str, 2);
+		ft_putstr_fd("': not a valid identifier\n", 2);
 	}
 }
 
@@ -65,9 +71,9 @@ int	msg_built(t_built msg, char *str, int code)
 int	clear_built(t_exec *exec, t_child *child, int code)
 {
 	(void)child;
+	close_all_fds(exec);
 	ft_cmd_lstclear(&exec->cmd);
 	exec->cmd = NULL;
-	close_all_fds(exec);
 	free_tab_int(exec->fd, exec->total_cmd - 1);
 	if (exec->pid)
 		free(exec->pid);
@@ -81,9 +87,9 @@ int	clear_built(t_exec *exec, t_child *child, int code)
 
 int	clear_one(t_exec *exec, int code)
 {
+	close_all_fds(exec);
 	ft_cmd_lstclear(&exec->cmd);
 	exec->cmd = NULL;
-	close_all_fds(exec);
 	free_tab_int(exec->fd, exec->total_cmd - 1);
 	if (exec->pid)
 		free(exec->pid);
@@ -91,19 +97,19 @@ int	clear_one(t_exec *exec, int code)
 	return (code);
 }
 
-int	final_exit(t_exec *exec, t_persistent *pers, int code)
+int	final_exit(t_exec *exec, t_pers *pers, int code)
 {
 	rl_clear_history();
+	close_all_fds(exec);
 	ft_cmd_lstclear(&exec->cmd);
 	exec->cmd = NULL;
-	close_all_fds(exec);
 	free_tab_int(exec->fd, exec->total_cmd - 1);
 	if (exec->pid)
 		free(exec->pid);
 	exec->pid = NULL;
 	ft_freetab(exec->mini_env);
+	exec->mini_env = NULL;
 	ft_freetab(pers->export);
 	pers->export = NULL;
-	exec->mini_env = NULL;
 	exit (code);
 }

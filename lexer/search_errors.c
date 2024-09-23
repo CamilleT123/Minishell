@@ -6,7 +6,7 @@
 /*   By: ctruchot <ctruchot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 13:04:58 by aduvilla          #+#    #+#             */
-/*   Updated: 2024/03/29 17:24:16 by ctruchot         ###   ########.fr       */
+/*   Updated: 2024/04/09 11:45:04 by aduvilla         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	msg_lex(t_msg msg, char c, char *str)
 		ft_putchar_fd('\'', 2);
 	}
 	if (msg == QUOTE || msg == DQUOTE)
-		write(2, str, 8);
+		ft_putstr_fd(str, 2);
 	ft_putchar_fd('\n', 2);
 }
 
@@ -83,6 +83,8 @@ int	search_errors(char *read)
 		return (1);
 	while (read[i])
 	{
+		if (read[0] == '|')
+			return (msg_lex(TOKEN, read[0], ""), 1);
 		if (pass_quote(read, &i))
 			return (1);
 		if (read[i] && is_special(read[i]))
